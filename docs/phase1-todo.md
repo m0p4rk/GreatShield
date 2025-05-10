@@ -1,91 +1,101 @@
-# 🛠️ Phase 1: Tier 1 Implementation Tasks – *GreatShield*
+# 🛠️ Phase 1: Tier 1 Final Implementation Checklist – *GreatShield*
 
-This checklist outlines all required development tasks to complete Tier 1 of the GreatShield extension.
+This document tracks the finalized development scope for Phase 1.  
+All items reflect the latest architectural, interface, caching, and workflow decisions.
 
 ---
 
 ## ✅ Phase Objectives
 
-- Establish a functional scanning pipeline for browser-based document protection.
-- Ensure safe document types are allowed and suspicious ones are blocked.
-- Achieve 90%+ test coverage across units and flows.
-- Enable users to receive instant feedback with toast notifications.
+- Implement Chrome extension with static scan pipeline (Tier 1)
+- Filter risky documents not flagged by Chrome (e.g., .pdf, .docx, .zip)
+- Scan locally using signature rules
+- Use `chrome.storage.local` for result caching
+- Notify user with toast and summary popup
+- Achieve 90%+ test coverage
 
 ---
 
-## 1. Type Definitions
+## 1. Type Definitions (`src/types/`)
 
-- [ ] Define `DownloadEvent`, `Policy`, `AnalysisResult`, `ScanVerdict` in `src/types/interfaces.ts`
-- [ ] Create `PopupDisplayPayload`, `RuleMatch` types
-- [ ] Set up shared `models.ts` for internal use across modules
-
----
-
-## 2. Utility Module Implementation
-
-- [ ] `logger.ts` – info/error logging wrapper
-- [ ] `configManager.ts` – load & manage policy config
-- [ ] `storage.ts` – IndexedDB abstraction for caching
-- [ ] `fileTypes.ts` – allowed extension registry and helpers
+- [ ] Define core interfaces: `DownloadEvent`, `Policy`, `ScanVerdict`, `AnalysisResult`, `PopupDisplayPayload`
+- [ ] Define shared models: `ScanSession`, `EventBusEvent`, `PerformanceMetric`, `ExtensionConfig`
 
 ---
 
-## 3. Core Components
+## 2. Utility Modules (`src/utils/`)
 
-- [ ] `serviceWorker.ts` – listens for download events
-- [ ] `eventBus.ts` – dispatch/download pipeline orchestration
-- [ ] `downloadScanner.ts` – coordinates scanning logic
-- [ ] `policyEnforcer.ts` – filters invalid files
-- [ ] `fileAnalyzer.ts` – parses file and computes hash
-- [ ] `ruleEngine.ts` – applies static rules (regex matches)
-- [ ] `notificationManager.ts` – shows toast + handles popup trigger
-- [ ] `smartScanGateway.ts` – stubbed async handler for Tier 2
+- [ ] `logger.ts`: Structured logging + levels
+- [ ] `configManager.ts`: Runtime + policy config
+- [ ] `storage.ts`: Chrome local storage wrapper (no IndexedDB)
+- [ ] `fileTypes.ts`: Extension whitelist, risk classification
+- [ ] `index.ts`: Utility re-exports and helper glue code
+
+---
+
+## 3. Core Background Modules (`src/background/`)
+
+- [ ] `serviceWorker.ts`: Download interception and dispatch
+- [ ] `eventBus.ts`: Component-level event orchestration
+- [ ] `downloadScanner.ts`: Full scan flow coordination
+- [ ] `policyEnforcer.ts`: File size + extension validation
+- [ ] `fileAnalyzer.ts`: Text extraction + hash calculation
+- [ ] `ruleEngine.ts`: Signature matching (regex)
+- [ ] `notificationManager.ts`: Toast + popup trigger
+- [ ] `smartScanGateway.ts`: Tier 2 stub interface
 
 ---
 
 ## 4. Integration & Workflow
 
-- [ ] Connect event → scan → notify flow via `eventBus`
-- [ ] Add caching logic for previously scanned files
-- [ ] Ensure skipped files (unsupported/oversized) are handled gracefully
+- [ ] Interconnect download → scan → notify pipeline
+- [ ] Graceful fallback on scan errors
+- [ ] Hash-based result caching with TTL
+- [ ] Cache miss → run scan → store result
+- [ ] Skipped if extension not eligible (e.g. unsupported or too large)
 
 ---
 
-## 5. Popup UI
+## 5. Popup UI (`src/popup/`)
 
-- [ ] Implement popup page with scan result summary
-- [ ] Display file name, verdict, matched rules, timestamp
+- [ ] Verdict display: file name, result, rules, time
+- [ ] History (stub) and scan summary
+- [ ] Placeholder for future settings/manual trigger
 
 ---
 
-## 6. Testing
+## 6. Testing (`tests/`)
 
-- [ ] Unit tests for `PolicyEnforcer`, `RuleEngine`, `FileAnalyzer`, etc. (Jest)
-- [ ] E2E tests for real download-to-notification flow (Playwright)
-- [ ] Mock malicious/clean file fixtures in `tests/assets/`
+- [ ] Unit Tests (Jest): logic and utility coverage
+- [ ] Integration Tests: RuleEngine + FileAnalyzer + flow
+- [ ] E2E Tests (Playwright): user download scenarios, popup interaction
+- [ ] Fixtures: clean/infected `.pdf`, `.docx`, `.zip` samples
 
 ---
 
 ## 7. CI/CD Pipeline
 
-- [ ] Set up GitHub Actions (lint, type-check, test, build)
-- [ ] Ensure coverage badge updates
-- [ ] Ensure build outputs to `dist/`
+- [ ] `ci.yml`: lint, type-check, unit test, build
+- [ ] `deploy.yml`: build for Chrome Web Store
+- [ ] Coverage badge + threshold enforced
 
 ---
 
 ## 8. Performance Benchmarks
 
-- [ ] Measure average scan latency (goal: < 50ms)
-- [ ] Measure memory footprint (goal: < 5MB idle)
+- [ ] Avg scan time < 50ms
+- [ ] Runtime memory usage < 5MB
+- [ ] No significant CPU/network usage
 
 ---
 
-## 9. Documentation
+## 9. Documentation (`docs/`)
 
-- [ ] Ensure all TypeScript interfaces are documented in `docs/interface-reference.md`
-- [ ] Link module descriptions in `architecture.md`
+- [ ] Interface specification (TypeScript contract)
+- [ ] Technical architecture (Mermaid diagram)
+- [ ] Final test plan + use cases
+- [ ] Engineering blueprint for contributors
 
 ---
 
-> 💡 Once all items above are checked off, the extension will be ready for internal testing and manual installation.
+> ✅ When all items are checked, GreatShield Phase 1 is ready for internal QA and Chrome Web Store submission.
