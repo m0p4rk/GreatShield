@@ -33,6 +33,9 @@ graph TD
 - Different log levels (DEBUG, INFO, WARN, ERROR)
 - Chrome console integration
 - Performance tracking
+- Memory usage monitoring
+- Log grouping and formatting
+- Log backup and export
 
 ### Key Features
 - Log level filtering
@@ -43,6 +46,11 @@ graph TD
 - Log persistence
 - Log rotation
 - Source mapping
+- Log grouping
+- Sensitive data redaction
+- Log backup to Chrome storage
+- Log export and filtering
+- Dynamic log level adjustment
 
 ### Implementation Details
 ```typescript
@@ -52,6 +60,33 @@ interface LogEntry {
   message: string;
   context?: Record<string, unknown>;
   stack?: string;
+  source?: string;
+  performance?: PerformanceMetric;
+  memory?: MemoryMetric;
+  group?: string;
+}
+
+interface PerformanceMetric {
+  duration: number;
+  startTime: number;
+  endTime: number;
+  operation: string;
+}
+
+interface MemoryMetric {
+  heapUsed: number;
+  heapTotal: number;
+  external: number;
+}
+
+interface LogFormat {
+  timestamp: boolean;
+  level: boolean;
+  context: boolean;
+  stack: boolean;
+  source: boolean;
+  performance: boolean;
+  memory: boolean;
 }
 
 interface LoggerConfig {
@@ -59,34 +94,47 @@ interface LoggerConfig {
   persistLogs: boolean;
   maxLogSize: number;
   rotationInterval: number;
+  format: LogFormat;
+  trackPerformance: boolean;
+  trackMemory: boolean;
+  memoryCheckInterval: number;
+  backupInterval: number;
+  sensitiveKeys: string[];
 }
 
 class Logger {
-  private static instance: Logger;
-  private config: LoggerConfig;
-  private logBuffer: LogEntry[];
-  
-  private constructor(config: Partial<LoggerConfig>) {
-    this.config = this.mergeWithDefaults(config);
-    this.logBuffer = [];
-  }
+  // Core logging methods
+  public log(level: LogLevel, message: string, context?: Record<string, unknown>): void;
+  public debug(message: string, context?: Record<string, unknown>): void;
+  public info(message: string, context?: Record<string, unknown>): void;
+  public warn(message: string, context?: Record<string, unknown>): void;
+  public error(message: string, error?: Error, context?: Record<string, unknown>): void;
 
-  public static getInstance(config?: Partial<LoggerConfig>): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger(config || {});
-    }
-    return Logger.instance;
-  }
+  // Performance tracking
+  public startMeasurement(operation: string): void;
+  public endMeasurement(operation: string, context?: Record<string, unknown>): void;
 
-  public log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
-    // Implementation
-  }
+  // Log grouping
+  public startLogGroup(name: string): void;
+  public endLogGroup(): void;
 
-  public error(message: string, error?: Error, context?: Record<string, unknown>): void {
-    // Implementation
-  }
+  // Configuration
+  public setLogLevel(level: LogLevel): void;
+  public getLogs(): LogEntry[];
+  public clearLogs(): void;
 
-  // Additional methods
+  // Export and filtering
+  public exportLogs(format: 'json' | 'text'): string;
+  public filterLogs(options: {
+    level?: LogLevel;
+    startTime?: number;
+    endTime?: number;
+    search?: string;
+    group?: string;
+  }): LogEntry[];
+
+  // Resource management
+  public cleanup(): void;
 }
 ```
 
@@ -95,17 +143,41 @@ class Logger {
 // Initialize
 const logger = Logger.getInstance({
   minLevel: LogLevel.DEBUG,
-  persistLogs: true
+  persistLogs: true,
+  trackPerformance: true,
+  trackMemory: true
 });
 
-// Usage
+// Basic logging
 logger.debug('Scan started', { fileId: 123 });
 logger.error('Scan failed', { error: 'Invalid file format' });
 
 // Performance tracking
-logger.measure('scan', async () => {
-  // Scan operation
+logger.startMeasurement('scan');
+// ... scan operation
+logger.endMeasurement('scan', { fileSize: 1024 });
+
+// Log grouping
+logger.startLogGroup('File Processing');
+logger.info('Processing file', { filename: 'test.pdf' });
+logger.debug('File details', { size: 1024, type: 'pdf' });
+logger.endLogGroup();
+
+// Dynamic log level
+logger.setLogLevel(LogLevel.WARN);
+
+// Export logs
+const jsonLogs = logger.exportLogs('json');
+const textLogs = logger.exportLogs('text');
+
+// Filter logs
+const errorLogs = logger.filterLogs({ level: LogLevel.ERROR });
+const recentLogs = logger.filterLogs({
+  startTime: Date.now() - 3600000 // Last hour
 });
+
+// Cleanup
+logger.cleanup();
 ```
 
 ### Error Handling
@@ -113,6 +185,24 @@ logger.measure('scan', async () => {
 - Context preservation
 - Error aggregation
 - Recovery suggestions
+- Sensitive data redaction
+- Circular reference handling
+- JSON serialization error handling
+
+### Performance Considerations
+- Memory usage monitoring
+- Log rotation
+- Performance metrics tracking
+- Resource cleanup
+- Efficient string formatting
+- Conditional logging based on level
+
+### Security Features
+- Sensitive data redaction
+- Secure error messages
+- Context sanitization
+- Log backup encryption
+- Access control
 
 ## 2. Config Manager (`src/utils/configManager.ts`)
 
